@@ -10,6 +10,26 @@ import { DisplayBoard } from './components/DisplayBoard'
 import CreateUser from './components/CreateUser'
 import { getAllUsers, createUser } from './services/UserService'
 
+const generateMnemonic = () => bip39.generateMnemonic()
+
+const getKeypairsFromMnemonic = async (mnemonic) => {
+  const seed = await bip39.mnemonicToSeed(mnemonic)
+
+  // [TODO] replace bip32 for a generic key derivation lib
+  const root = bip32.fromSeed(seed);
+  const path = "m/49'/1'/0'/0/0";
+  return root.derivePath(path);
+}
+
+const signPayload = async (payload, privateKey) => {
+  const encoder = new TextEncoder();
+  const encodedPayload = encoder.encode(JSON.stringify(payload));
+  const sha256Payload = await crypto.subtle.digest('SHA-256', encodedPayload);
+  const payloadBuffer = Buffer.from(sha256Payload);
+
+  return ecc.sign(payloadBuffer, privateKey);
+}
+
 class App extends Component {
   state = {
     user: {},
@@ -20,25 +40,14 @@ class App extends Component {
   createUser = async (e) => {
     let user = this.state.user
 
-    const mnemonic = bip39.generateMnemonic()
-    const seed = await bip39.mnemonicToSeed(mnemonic)
-
-    // [TODO] replace bip32 for a generic key derivation lib
-    const root = bip32.fromSeed(seed);
-    const path = "m/49'/1'/0'/0/0";
-    const { privateKey, publicKey } = root.derivePath(path);
-
     const payload = {
       action: 'registration',
       user,
     };
 
-    const encoder = new TextEncoder();
-    const encodedPayload = encoder.encode(JSON.stringify(payload));
-    const sha256Payload = await crypto.subtle.digest('SHA-256', encodedPayload);
-    const payloadBuffer = Buffer.from(sha256Payload);
-
-    const signature = ecc.sign(payloadBuffer, privateKey);
+    const mnemonic = generateMnemonic()
+    const { privateKey, publicKey } = await getKeypairsFromMnemonic(mnemonic);
+    const signature = await signPayload(payload, privateKey);
 
     createUser({ publicKey, signature, payload })
       .then(response => {
