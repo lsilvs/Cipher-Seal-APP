@@ -32,9 +32,10 @@ const signPayload = async (payload, privateKey) => {
 
 class App extends Component {
   state = {
+    currentUser: {},
     user: {},
     users: [],
-    numberOfUsers: 0
+    numberOfUsers: 0,
   }
 
   createUser = async (e) => {
@@ -46,8 +47,10 @@ class App extends Component {
     };
 
     const mnemonic = generateMnemonic()
-    const { privateKey, publicKey } = await getKeypairsFromMnemonic(mnemonic);
+    const { publicKey, privateKey } = await getKeypairsFromMnemonic(mnemonic);
     const signature = await signPayload(payload, privateKey);
+
+    this.setState({ currentUser: { publicKey, privateKey } })
 
     createUser({ publicKey, signature, payload })
       .then(response => {
@@ -56,8 +59,16 @@ class App extends Component {
     });
   }
 
-  getAllUsers = () => {
-    getAllUsers()
+  getAllUsers = async () => {
+    let { publicKey, privateKey } = this.state.currentUser
+
+    const payload = {
+      action: 'getAllUsers',
+    };
+
+    const signature = await signPayload(payload, privateKey);
+
+    getAllUsers({ publicKey, signature, payload })
       .then(users => {
         console.log(users)
         this.setState({users: users, numberOfUsers: users.length})
