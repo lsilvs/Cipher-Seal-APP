@@ -10,6 +10,7 @@ export const Users = ({ users }) => {
       <td>{index + 1}</td>
       <td>{user.firstName}</td>
       <td>{user.lastName}</td>
+      <td>{user.validSignature ? '✅' : '❌'}</td>
     </tr>
   )
 
@@ -24,6 +25,7 @@ export const Users = ({ users }) => {
           <th>User Id</th>
           <th>Firstname</th>
           <th>Lastname</th>
+          <th>Valid Signature</th>
         </tr>
         </thead>
         <tbody>

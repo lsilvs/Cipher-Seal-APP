@@ -30,6 +30,15 @@ const signPayload = async (payload, privateKey) => {
   return ecc.sign(payloadBuffer, privateKey);
 }
 
+const verifySignature = async (payload, publicKey, signature) => {
+  const encoder = new TextEncoder();
+  const encodedPayload = encoder.encode(JSON.stringify(payload));
+  const sha256Payload = await crypto.subtle.digest('SHA-256', encodedPayload);
+  const payloadBuffer = Buffer.from(sha256Payload);
+
+  return ecc.verify(payloadBuffer, Buffer.from(publicKey), Buffer.from(signature));
+}
+
 class App extends Component {
   state = {
     currentUser: {},
@@ -67,12 +76,15 @@ class App extends Component {
     };
 
     const signature = await signPayload(payload, privateKey);
-
-    getAllUsers({ publicKey, signature, payload })
-      .then(users => {
-        console.log(users)
-        this.setState({users: users, numberOfUsers: users.length})
-      });
+    const registrations = await getAllUsers({ publicKey, signature, payload });
+    const users = await Promise.all(registrations.map(async registration => {
+      const { payload, publicKey, signature } = registration;
+      const user = payload.user
+      user.validSignature = await verifySignature(payload, publicKey, signature);
+      return user;
+    }))
+    console.log(users)
+    this.setState({ users, numberOfUsers: users.length })
   }
 
   onChangeForm = (e) => {
