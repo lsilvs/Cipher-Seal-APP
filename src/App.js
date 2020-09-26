@@ -18,7 +18,11 @@ const getKeypairsFromMnemonic = async (mnemonic) => {
   // [TODO] replace bip32 for a generic key derivation lib
   const root = bip32.fromSeed(seed);
   const path = "m/49'/1'/0'/0/0";
-  return root.derivePath(path);
+  const { publicKey, privateKey } = root.derivePath(path);
+  return {
+    publicKey: publicKey.toString('base64'),
+    privateKey: privateKey.toString('base64')
+  }
 }
 
 const signPayload = async (payload, privateKey) => {
@@ -27,7 +31,10 @@ const signPayload = async (payload, privateKey) => {
   const sha256Payload = await crypto.subtle.digest('SHA-256', encodedPayload);
   const payloadBuffer = Buffer.from(sha256Payload);
 
-  return ecc.sign(payloadBuffer, privateKey);
+  return ecc.sign(
+    payloadBuffer,
+    Buffer.from(privateKey, 'base64'),
+  ).toString('base64');
 }
 
 const verifySignature = async (payload, publicKey, signature) => {
@@ -36,12 +43,15 @@ const verifySignature = async (payload, publicKey, signature) => {
   const sha256Payload = await crypto.subtle.digest('SHA-256', encodedPayload);
   const payloadBuffer = Buffer.from(sha256Payload);
 
-  return ecc.verify(payloadBuffer, Buffer.from(publicKey), Buffer.from(signature));
+  return ecc.verify(
+    payloadBuffer,
+    Buffer.from(publicKey, 'base64'),
+    Buffer.from(signature, 'base64'),
+  );
 }
 
 class App extends Component {
   state = {
-    currentUser: {},
     user: {},
     users: [],
     numberOfUsers: 0,
@@ -57,9 +67,12 @@ class App extends Component {
 
     const mnemonic = generateMnemonic()
     const { publicKey, privateKey } = await getKeypairsFromMnemonic(mnemonic);
-    const signature = await signPayload(payload, privateKey);
 
-    this.setState({ currentUser: { publicKey, privateKey } })
+    // [TODO] protect keypairs
+    // using sessionStorage for now to make it easier to test the app
+    sessionStorage.setItem('currentUser', JSON.stringify({ publicKey, privateKey }))
+
+    const signature = await signPayload(payload, privateKey);
 
     createUser({ publicKey, signature, payload })
       .then(response => {
@@ -69,7 +82,7 @@ class App extends Component {
   }
 
   getAllUsers = async () => {
-    let { publicKey, privateKey } = this.state.currentUser
+    const { publicKey, privateKey } = JSON.parse(sessionStorage.currentUser)
 
     const payload = {
       action: 'getAllUsers',
