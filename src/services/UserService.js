@@ -16,3 +16,8 @@ export async function createUser(data) {
   const response = await makeRequest(data);
   return response.json();
 }
+
+export async function loginUser(data) {
+  const response = await makeRequest(data);
+  return response.json();
+}

@@ -8,7 +8,8 @@ import { Header } from './components/Header'
 import { Users } from './components/Users'
 import { DisplayBoard } from './components/DisplayBoard'
 import CreateUser from './components/CreateUser'
-import { getAllUsers, createUser } from './services/UserService'
+import LoginUser from './components/LoginUser'
+import { getAllUsers, createUser, loginUser } from './services/UserService'
 
 const generateMnemonic = () => bip39.generateMnemonic()
 
@@ -18,11 +19,16 @@ const getKeypairsFromMnemonic = async (mnemonic) => {
   // [TODO] replace bip32 for a generic key derivation lib
   const root = bip32.fromSeed(seed);
   const path = "m/49'/1'/0'/0/0";
-  const { publicKey, privateKey } = root.derivePath(path);
-  return {
-    publicKey: publicKey.toString('base64'),
-    privateKey: privateKey.toString('base64')
-  }
+  const keypairs = root.derivePath(path);
+
+  const publicKey = keypairs.publicKey.toString('base64')
+  const privateKey = keypairs.privateKey.toString('base64')
+
+  // [TODO] protect keypairs
+  // using sessionStorage for now to make it easier to test the app
+  sessionStorage.setItem('currentUser', JSON.stringify({ publicKey, privateKey }))
+
+  return { publicKey, privateKey }
 }
 
 const signPayload = async (payload, privateKey) => {
@@ -53,37 +59,53 @@ const verifySignature = async (payload, publicKey, signature) => {
 class App extends Component {
   state = {
     user: {},
-    users: [],
-    numberOfUsers: 0,
+    view: 'loginUser',
   }
 
-  createUser = async (e) => {
+  loginUser = async (e) => {
     let user = this.state.user
 
     const payload = {
-      action: 'registration',
-      user,
+      action: 'loginUser',
     };
 
-    const mnemonic = generateMnemonic()
-    const { publicKey, privateKey } = await getKeypairsFromMnemonic(mnemonic);
-
-    // [TODO] protect keypairs
-    // using sessionStorage for now to make it easier to test the app
-    sessionStorage.setItem('currentUser', JSON.stringify({ publicKey, privateKey }))
-
+    const { publicKey, privateKey } = await getKeypairsFromMnemonic(user.passphrase);
     const signature = await signPayload(payload, privateKey);
 
-    createUser({ publicKey, signature, payload })
-      .then(response => {
-        console.log(response);
-        this.setState({numberOfUsers: this.state.numberOfUsers + 1})
-    });
+    const response = await loginUser({ publicKey, signature, payload })
+    console.log(response);
+    if (response.success) {
+      this.setState({ view: 'showUser', user: response.user })
+    }
+  }
+
+  showCreateUser = async () => {
+    this.setState({ view: 'createUser' })
+  }
+
+  createUser = async () => {
+    let user = this.state.user
+
+    const payload = {
+      action: 'createUser',
+      user: {
+        firstName: user.firstName,
+        lastName: user.lastName,
+       },
+    };
+
+    const { publicKey, privateKey } = await getKeypairsFromMnemonic(user.passphrase);
+    const signature = await signPayload(payload, privateKey);
+
+    const response = await createUser({ publicKey, signature, payload })
+    console.log(response);
+    if (response.success) {
+      this.setState({ view: 'showUser' })
+    }
   }
 
   getAllUsers = async () => {
     const { publicKey, privateKey } = JSON.parse(sessionStorage.currentUser)
-
     const payload = {
       action: 'getAllUsers',
     };
@@ -102,11 +124,17 @@ class App extends Component {
 
   onChangeForm = (e) => {
       let user = this.state.user
+
       if (e.target.name === 'firstname') {
-          user.firstName = e.target.value;
+        user.passphrase = generateMnemonic()
+        user.firstName = e.target.value;
       } else if (e.target.name === 'lastname') {
-          user.lastName = e.target.value;
+        user.passphrase = generateMnemonic()
+        user.lastName = e.target.value;
+      } else if (e.target.name === 'passphrase') {
+        user.passphrase = e.target.value;
       }
+
       this.setState({user})
   }
 
@@ -116,25 +144,26 @@ class App extends Component {
         <Header></Header>
         <div className="container mrgnbtm">
           <div className="row">
-            <div className="col-md-8">
-                <CreateUser 
-                  user={this.state.user}
-                  onChangeForm={this.onChangeForm}
-                  createUser={this.createUser}
-                  >
-                </CreateUser>
-            </div>
-            <div className="col-md-4">
-                <DisplayBoard
-                  numberOfUsers={this.state.numberOfUsers}
-                  getAllUsers={this.getAllUsers}
-                >
-                </DisplayBoard>
-            </div>
+            {this.state.view === 'loginUser' && (
+              <LoginUser
+                loginUser={this.loginUser}
+                showCreateUser={this.showCreateUser}
+                onChangeForm={this.onChangeForm}
+              />
+            )}
+            {this.state.view === 'createUser' && (
+              <CreateUser
+                createUser={this.createUser}
+                user={this.state.user}
+                onChangeForm={this.onChangeForm}
+              />
+            )}
+            {this.state.view === 'showUser' && (
+              <Users
+                users={[this.state.user]}
+              />
+            )}
           </div>
-        </div>
-        <div className="row mrgnbtm">
-          <Users users={this.state.users}></Users>
         </div>
       </div>
     );
