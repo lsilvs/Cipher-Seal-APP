@@ -13,22 +13,37 @@ import { getAllUsers, createUser, loginUser } from './services/UserService'
 
 const generateMnemonic = () => bip39.generateMnemonic()
 
+// [TODO] protect keypairs
+const setCurrentUser = ({ firstName, lastName, publicKey, privateKey }) => {
+  const currentUser = sessionStorage.currentUser
+    ? JSON.parse(sessionStorage.currentUser)
+    : {}
+
+  if (firstName) currentUser.firstName = firstName
+  if (lastName) currentUser.lastName = lastName
+  if (publicKey) currentUser.publicKey = publicKey
+  if (privateKey) currentUser.privateKey = privateKey
+
+  sessionStorage.setItem('currentUser', JSON.stringify(currentUser))
+  return JSON.parse(sessionStorage.currentUser)
+}
+
+const getCurrentUser = () => {
+  return sessionStorage.currentUser ? JSON.parse(sessionStorage.currentUser) : null
+}
+
 const getKeypairsFromMnemonic = async (mnemonic) => {
   const seed = await bip39.mnemonicToSeed(mnemonic)
 
   // [TODO] replace bip32 for a generic key derivation lib
   const root = bip32.fromSeed(seed);
   const path = "m/49'/1'/0'/0/0";
-  const keypairs = root.derivePath(path);
+  const { publicKey, privateKey } = root.derivePath(path);
 
-  const publicKey = keypairs.publicKey.toString('base64')
-  const privateKey = keypairs.privateKey.toString('base64')
-
-  // [TODO] protect keypairs
-  // using sessionStorage for now to make it easier to test the app
-  sessionStorage.setItem('currentUser', JSON.stringify({ publicKey, privateKey }))
-
-  return { publicKey, privateKey }
+  return {
+    publicKey: publicKey.toString('base64'),
+    privateKey: privateKey.toString('base64'),
+  }
 }
 
 const signPayload = async (payload, privateKey) => {
@@ -59,10 +74,10 @@ const verifySignature = async (payload, publicKey, signature) => {
 class App extends Component {
   state = {
     user: {},
-    view: 'loginUser',
+    view: getCurrentUser() ? 'showUser' : 'loginUser',
   }
 
-  loginUser = async (e) => {
+  loginUser = async () => {
     let user = this.state.user
 
     const payload = {
@@ -70,11 +85,18 @@ class App extends Component {
     };
 
     const { publicKey, privateKey } = await getKeypairsFromMnemonic(user.passphrase);
+
     const signature = await signPayload(payload, privateKey);
 
     const response = await loginUser({ publicKey, signature, payload })
-    console.log(response);
+
     if (response.success) {
+      setCurrentUser({
+        firstName: response.user.firstName,
+        lastName: response.user.lastName,
+        publicKey,
+        privateKey,
+      })
       this.setState({ view: 'showUser', user: response.user })
     }
   }
@@ -95,17 +117,24 @@ class App extends Component {
     };
 
     const { publicKey, privateKey } = await getKeypairsFromMnemonic(user.passphrase);
+
     const signature = await signPayload(payload, privateKey);
 
     const response = await createUser({ publicKey, signature, payload })
-    console.log(response);
+
     if (response.success) {
+      setCurrentUser({
+        firstName: user.firstName,
+        lastName: user.lastName,
+        publicKey,
+        privateKey,
+      })
       this.setState({ view: 'showUser' })
     }
   }
 
   getAllUsers = async () => {
-    const { publicKey, privateKey } = JSON.parse(sessionStorage.currentUser)
+    const { publicKey, privateKey } = getCurrentUser()
     const payload = {
       action: 'getAllUsers',
     };
@@ -160,7 +189,7 @@ class App extends Component {
             )}
             {this.state.view === 'showUser' && (
               <Users
-                users={[this.state.user]}
+                users={[getCurrentUser()]}
               />
             )}
           </div>
