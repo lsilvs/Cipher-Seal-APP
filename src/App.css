@@ -2,21 +2,34 @@
 .header {
   width: 100%;
   padding: 2%;
-  background-color: burlywood;
+  background-color: rgb(29, 161, 242);
   color: white;
   text-align: center;
 }
 
 .display-board {
   width: 100%;
-  background-color: rgb(555, 200, 789);
+  background-color: rgb(29, 161, 242);
+  color: white;
   padding: 5%;
 }
 
 .number {
-  color: red;
+  color: white;
   font-size: 75px;
   text-align: center;
+}
+
+.btn-danger, .btn-danger:hover {
+  background-color: rgb(29, 161, 242);
+  color: white;
+  border-color: black
+}
+
+.btn-warning, .btn-warning:hover {
+  background-color: white;
+  color: black;
+  border-color: black
 }
 
 .mrgnbtm {
