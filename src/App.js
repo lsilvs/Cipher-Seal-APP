@@ -6,14 +6,11 @@ import * as bip39 from 'bip39';
 import * as ecc from 'tiny-secp256k1';
 import { Header } from './components/Header'
 import { Users } from './components/Users'
-import { DisplayBoard } from './components/DisplayBoard'
 import CreateUser from './components/CreateUser'
 import LoginUser from './components/LoginUser'
 import { getAllUsers, createUser, loginUser } from './services/UserService'
 
-const generateMnemonic = () => bip39.generateMnemonic()
-
-// [TODO] protect keypairs
+// [TODO] protect keypairs (check if bip38 is suitable)
 const setCurrentUser = ({ firstName, lastName, publicKey, privateKey }) => {
   const currentUser = sessionStorage.currentUser
     ? JSON.parse(sessionStorage.currentUser)
@@ -31,6 +28,8 @@ const setCurrentUser = ({ firstName, lastName, publicKey, privateKey }) => {
 const getCurrentUser = () => {
   return sessionStorage.currentUser ? JSON.parse(sessionStorage.currentUser) : null
 }
+
+const generateMnemonic = () => bip39.generateMnemonic()
 
 const getKeypairsFromMnemonic = async (mnemonic) => {
   const seed = await bip39.mnemonicToSeed(mnemonic)
@@ -80,6 +79,10 @@ class App extends Component {
   loginUser = async () => {
     let user = this.state.user
 
+    if (!bip39.validateMnemonic(user.passphrase)) {
+      throw new Error('Invalid passphrase')
+    }
+
     const payload = {
       action: 'loginUser',
     };
@@ -99,6 +102,11 @@ class App extends Component {
       })
       this.setState({ view: 'showUser', user: response.user })
     }
+  }
+
+  logoutUser = async () => {
+    sessionStorage.removeItem('currentUser');
+    this.setState({ view: 'loginUser', user: {} })
   }
 
   showCreateUser = async () => {
@@ -147,7 +155,7 @@ class App extends Component {
       user.validSignature = await verifySignature(payload, publicKey, signature);
       return user;
     }))
-    console.log(users)
+
     this.setState({ users, numberOfUsers: users.length })
   }
 
@@ -170,7 +178,7 @@ class App extends Component {
   render() {
     return (
       <div className="App">
-        <Header></Header>
+        <Header logoutUser={this.logoutUser} />
         <div className="container mrgnbtm">
           <div className="row">
             {this.state.view === 'loginUser' && (

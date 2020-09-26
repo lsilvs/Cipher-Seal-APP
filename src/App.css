@@ -7,6 +7,14 @@
   text-align: center;
 }
 
+.header .logout {
+    text-align: right;
+}
+
+.header .logout span {
+  cursor: pointer;
+}
+
 .display-board {
   width: 100%;
   background-color: rgb(29, 161, 242);
