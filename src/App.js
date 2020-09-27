@@ -16,14 +16,13 @@ import {
 
 // [TODO] protect keypairs (check if bip38 is suitable)
 const setCurrentUser = ({
-  firstName, lastName, publicKey, privateKey,
+  username, publicKey, privateKey,
 }) => {
   const currentUser = sessionStorage.currentUser
     ? JSON.parse(sessionStorage.currentUser)
     : {};
 
-  if (firstName) currentUser.firstName = firstName;
-  if (lastName) currentUser.lastName = lastName;
+  if (username) currentUser.username = username;
   if (publicKey) currentUser.publicKey = publicKey;
   if (privateKey) currentUser.privateKey = privateKey;
 
@@ -80,7 +79,7 @@ const verifySignature = async (payload, publicKey, signature) => {
 };
 
 const App = () => {
-  const [user, setUser] = useState({});
+  const [user, setUser] = useState(getCurrentUser() || {});
   const [view, setView] = useState(getCurrentUser() ? 'showUser' : 'loginUser');
 
   const loginUser = async () => {
@@ -100,8 +99,7 @@ const App = () => {
 
     if (response.success) {
       setCurrentUser({
-        firstName: response.user.firstName,
-        lastName: response.user.lastName,
+        username: response.user.username,
         publicKey,
         privateKey,
       });
@@ -121,14 +119,11 @@ const App = () => {
   };
 
   const createUser = async () => {
-    const { firstName, lastName, passphrase } = user;
+    const { username, passphrase } = user;
 
     const payload = {
       action: 'createUser',
-      user: {
-        firstName,
-        lastName,
-      },
+      user: { username },
     };
 
     const { publicKey, privateKey } = await getKeypairsFromMnemonic(passphrase);
@@ -139,8 +134,7 @@ const App = () => {
 
     if (response.success) {
       setCurrentUser({
-        firstName,
-        lastName,
+        username,
         publicKey,
         privateKey,
       });
@@ -178,12 +172,9 @@ const App = () => {
 
   const onChangeForm = (e) => {
     const newUser = { ...user };
-    if (e.target.name === 'firstname') {
+    if (e.target.name === 'username') {
       newUser.passphrase = generateMnemonic();
-      newUser.firstName = e.target.value;
-    } else if (e.target.name === 'lastname') {
-      newUser.passphrase = generateMnemonic();
-      newUser.lastName = e.target.value;
+      newUser.username = e.target.value;
     } else if (e.target.name === 'passphrase') {
       newUser.passphrase = e.target.value;
     }
@@ -196,7 +187,7 @@ const App = () => {
 
   return (
     <div className="App">
-      <Header logoutUser={logoutUser} />
+      <Header user={user} logoutUser={logoutUser} />
       <div className="container mrgnbtm">
         <div className="row">
           {view === 'loginUser' && (

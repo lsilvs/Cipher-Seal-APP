@@ -6,8 +6,7 @@ export default ({ users }) => {
   const UserRow = (user, index) => (
     <tr key={index} className={index % 2 === 0 ? 'odd' : 'even'}>
       <td>{index + 1}</td>
-      <td>{user.firstName}</td>
-      <td>{user.lastName}</td>
+      <td>{user.username}</td>
     </tr>
   );
 
@@ -20,8 +19,7 @@ export default ({ users }) => {
         <thead>
           <tr>
             <th>User Id</th>
-            <th>Firstname</th>
-            <th>Lastname</th>
+            <th>Username</th>
           </tr>
         </thead>
         <tbody>

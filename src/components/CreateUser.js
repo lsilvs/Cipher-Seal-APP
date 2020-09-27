@@ -8,15 +8,9 @@ export default ({ user, onChangeForm, createUser }) => (
         <form>
           <div className="row">
             <div className="form-group col-md-6">
-              <label htmlFor="firstname">
-                First Name
-                <input type="text" onChange={(e) => onChangeForm(e)} className="form-control" name="firstname" id="firstname" placeholder="First Name" />
-              </label>
-            </div>
-            <div className="form-group col-md-6">
-              <label htmlFor="lastname">
-                Last Name
-                <input type="text" onChange={(e) => onChangeForm(e)} className="form-control" name="lastname" id="lastname" placeholder="Last Name" />
+              <label htmlFor="username">
+                Username
+                <input type="text" onChange={(e) => onChangeForm(e)} className="form-control" name="username" id="username" placeholder="Username" />
               </label>
             </div>
           </div>
