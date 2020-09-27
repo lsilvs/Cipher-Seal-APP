@@ -1,34 +1,38 @@
-import React from 'react'
+import React from 'react';
 
-const CreateUser = ({ user, onChangeForm, createUser }) => {
-  return(
-    <div className="container">
-      <div className="row">
-        <div className="col-md-7 mrgnbtm">
-          <h2>Create User</h2>
-          <form>
-            <div className="row">
-              <div className="form-group col-md-6">
-                <label htmlFor="exampleInputPassphrase1">First Name</label>
+const CreateUser = ({ user, onChangeForm, createUser }) => (
+  <div className="container">
+    <div className="row">
+      <div className="col-md-7 mrgnbtm">
+        <h2>Create User</h2>
+        <form>
+          <div className="row">
+            <div className="form-group col-md-6">
+              <label htmlFor="firstname">
+                First Name
                 <input type="text" onChange={(e) => onChangeForm(e)} className="form-control" name="firstname" id="firstname" aria-describedby="passphraseHelp" placeholder="First Name" />
-              </div>
-              <div className="form-group col-md-6">
-                <label htmlFor="exampleInputPassword1">Last Name</label>
+              </label>
+            </div>
+            <div className="form-group col-md-6">
+              <label htmlFor="lastname">
+                Last Name
                 <input type="text" onChange={(e) => onChangeForm(e)} className="form-control" name="lastname" id="lastname" placeholder="Last Name" />
-              </div>
+              </label>
             </div>
-            <div className="row">
-              <div className="form-group col-md-12">
-                <label>Passphrase (keep it safe)</label>
+          </div>
+          <div className="row">
+            <div className="form-group col-md-12">
+              <label htmlFor="passphrase">
+                Passphrase (keep it safe)
                 <input type="text" className="form-control" name="passphrase" id="passphrase" readOnly value={user.passphrase} placeholder="12 words mnemonic" />
-              </div>
+              </label>
             </div>
-            <button type="button" onClick={() => createUser()} className="btn btn-danger">Create</button>
-          </form>
-        </div>
+          </div>
+          <button type="button" onClick={() => createUser()} className="btn btn-danger">Create</button>
+        </form>
       </div>
     </div>
-  )
-}
+  </div>
+);
 
-export default CreateUser
+export default CreateUser;

@@ -1,9 +1,8 @@
-
 export async function makeRequest(data) {
-  return fetch(`/api`, {
+  return fetch('/api', {
     method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify(data)
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
   });
 }
 
