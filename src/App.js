@@ -21,6 +21,7 @@ const setCurrentUser = ({ firstName, lastName, publicKey, privateKey }) => {
   if (publicKey) currentUser.publicKey = publicKey
   if (privateKey) currentUser.privateKey = privateKey
 
+  // using sessionStorage for now to make it easier to test the app
   sessionStorage.setItem('currentUser', JSON.stringify(currentUser))
   return JSON.parse(sessionStorage.currentUser)
 }
