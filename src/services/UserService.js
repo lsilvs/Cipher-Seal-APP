@@ -6,17 +6,17 @@ export async function makeRequest(data) {
   });
 }
 
-export async function getAllUsers(data) {
+export async function getAllUsersService(data) {
   const response = await makeRequest(data);
   return response.json();
 }
 
-export async function createUser(data) {
+export async function createUserService(data) {
   const response = await makeRequest(data);
   return response.json();
 }
 
-export async function loginUser(data) {
+export async function loginUserService(data) {
   const response = await makeRequest(data);
   return response.json();
 }

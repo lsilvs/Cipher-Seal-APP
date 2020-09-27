@@ -1,6 +1,6 @@
 import React from 'react';
 
-const LoginUser = ({ onChangeForm, loginUser, showCreateUser }) => (
+export default ({ onChangeForm, loginUser, showCreateUser }) => (
   <div className="container">
     <div className="row">
       <div className="col-md-12 mrgnbtm">
@@ -21,5 +21,3 @@ const LoginUser = ({ onChangeForm, loginUser, showCreateUser }) => (
     </div>
   </div>
 );
-
-export default LoginUser;

@@ -1,6 +1,6 @@
 import React from 'react';
 
-const CreateUser = ({ user, onChangeForm, createUser }) => (
+export default ({ user, onChangeForm, createUser }) => (
   <div className="container">
     <div className="row">
       <div className="col-md-7 mrgnbtm">
@@ -10,7 +10,7 @@ const CreateUser = ({ user, onChangeForm, createUser }) => (
             <div className="form-group col-md-6">
               <label htmlFor="firstname">
                 First Name
-                <input type="text" onChange={(e) => onChangeForm(e)} className="form-control" name="firstname" id="firstname" aria-describedby="passphraseHelp" placeholder="First Name" />
+                <input type="text" onChange={(e) => onChangeForm(e)} className="form-control" name="firstname" id="firstname" placeholder="First Name" />
               </label>
             </div>
             <div className="form-group col-md-6">
@@ -34,5 +34,3 @@ const CreateUser = ({ user, onChangeForm, createUser }) => (
     </div>
   </div>
 );
-
-export default CreateUser;

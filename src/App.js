@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { useState, useEffect } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
 import * as bip32 from 'bip32';
@@ -8,7 +8,11 @@ import Header from './components/Header';
 import Users from './components/Users';
 import CreateUser from './components/CreateUser';
 import LoginUser from './components/LoginUser';
-import { getAllUsers, createUser, loginUser } from './services/UserService';
+import {
+  getAllUsersService,
+  createUserService,
+  loginUserService,
+} from './services/UserService';
 
 // [TODO] protect keypairs (check if bip38 is suitable)
 const setCurrentUser = ({
@@ -75,18 +79,11 @@ const verifySignature = async (payload, publicKey, signature) => {
   );
 };
 
-class App extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      user: {},
-      view: getCurrentUser() ? 'showUser' : 'loginUser',
-    };
-  }
+const App = () => {
+  const [user, setUser] = useState({});
+  const [view, setView] = useState(getCurrentUser() ? 'showUser' : 'loginUser');
 
-  loginUser = async () => {
-    const { user } = this.state;
-
+  const loginUser = async () => {
     if (!bip39.validateMnemonic(user.passphrase)) {
       throw new Error('Invalid passphrase');
     }
@@ -99,7 +96,7 @@ class App extends Component {
 
     const signature = await signPayload(payload, privateKey);
 
-    const response = await loginUser({ publicKey, signature, payload });
+    const response = await loginUserService({ publicKey, signature, payload });
 
     if (response.success) {
       setCurrentUser({
@@ -108,114 +105,123 @@ class App extends Component {
         publicKey,
         privateKey,
       });
-      this.setState({ view: 'showUser', user: response.user });
+      setView('showUser');
+      setUser(response.user);
     }
-  }
+  };
 
-  logoutUser = async () => {
+  const logoutUser = async () => {
     sessionStorage.removeItem('currentUser');
-    this.setState({ view: 'loginUser', user: {} });
-  }
+    setView('loginUser');
+    setUser({});
+  };
 
-  showCreateUser = async () => {
-    this.setState({ view: 'createUser' });
-  }
+  const showCreateUser = async () => {
+    setView('createUser');
+  };
 
-  createUser = async () => {
-    const { user } = this.state;
+  const createUser = async () => {
+    const { firstName, lastName, passphrase } = user;
 
     const payload = {
       action: 'createUser',
       user: {
-        firstName: user.firstName,
-        lastName: user.lastName,
+        firstName,
+        lastName,
       },
     };
 
-    const { publicKey, privateKey } = await getKeypairsFromMnemonic(user.passphrase);
+    const { publicKey, privateKey } = await getKeypairsFromMnemonic(passphrase);
 
     const signature = await signPayload(payload, privateKey);
 
-    const response = await createUser({ publicKey, signature, payload });
+    const response = await createUserService({ publicKey, signature, payload });
 
     if (response.success) {
       setCurrentUser({
-        firstName: user.firstName,
-        lastName: user.lastName,
+        firstName,
+        lastName,
         publicKey,
         privateKey,
       });
-      this.setState({ view: 'showUser' });
+      setView('showUser');
     }
-  }
+  };
 
-  getAllUsers = async () => {
+  const getAllUsers = async () => {
+    const currentUser = getCurrentUser();
+    if (!currentUser) return;
+
     const { publicKey, privateKey } = getCurrentUser();
     const payload = {
       action: 'getAllUsers',
     };
 
     const signature = await signPayload(payload, privateKey);
-    const registrations = await getAllUsers({ publicKey, signature, payload });
-    await Promise.all(registrations.map(async (registration) => {
+    const registrations = await getAllUsersService({ publicKey, signature, payload });
+    const allUsers = await Promise.all(registrations.map(async (registration) => {
       const {
         payload: regPayload,
         publicKey: regPublicKey,
         signature: regSignature,
       } = registration;
-      const { user } = regPayload;
-      user.validSignature = await verifySignature(regPayload, regPublicKey, regSignature);
-      return user;
+      regPayload.user.validSignature = await verifySignature(
+        regPayload,
+        regPublicKey,
+        regSignature,
+      );
+      return regPayload.user;
     }));
-  }
 
-  onChangeForm = (e) => {
-    const { user } = this.state;
+    console.log(allUsers);
+  };
 
+  const onChangeForm = (e) => {
+    const newUser = { ...user };
     if (e.target.name === 'firstname') {
-      user.passphrase = generateMnemonic();
-      user.firstName = e.target.value;
+      newUser.passphrase = generateMnemonic();
+      newUser.firstName = e.target.value;
     } else if (e.target.name === 'lastname') {
-      user.passphrase = generateMnemonic();
-      user.lastName = e.target.value;
+      newUser.passphrase = generateMnemonic();
+      newUser.lastName = e.target.value;
     } else if (e.target.name === 'passphrase') {
-      user.passphrase = e.target.value;
+      newUser.passphrase = e.target.value;
     }
+    setUser(newUser);
+  };
 
-    this.setState({ user });
-  }
+  useEffect(() => {
+    getAllUsers();
+  }, []);
 
-  render() {
-    const { view, user } = this.state;
-    return (
-      <div className="App">
-        <Header logoutUser={this.logoutUser} />
-        <div className="container mrgnbtm">
-          <div className="row">
-            {view === 'loginUser' && (
-              <LoginUser
-                loginUser={this.loginUser}
-                showCreateUser={this.showCreateUser}
-                onChangeForm={this.onChangeForm}
-              />
-            )}
-            {view === 'createUser' && (
-              <CreateUser
-                createUser={this.createUser}
-                user={user}
-                onChangeForm={this.onChangeForm}
-              />
-            )}
-            {view === 'showUser' && (
-              <Users
-                users={[getCurrentUser()]}
-              />
-            )}
-          </div>
+  return (
+    <div className="App">
+      <Header logoutUser={logoutUser} />
+      <div className="container mrgnbtm">
+        <div className="row">
+          {view === 'loginUser' && (
+            <LoginUser
+              loginUser={loginUser}
+              showCreateUser={showCreateUser}
+              onChangeForm={onChangeForm}
+            />
+          )}
+          {view === 'createUser' && (
+            <CreateUser
+              createUser={createUser}
+              user={user}
+              onChangeForm={onChangeForm}
+            />
+          )}
+          {view === 'showUser' && (
+            <Users
+              users={[getCurrentUser()]}
+            />
+          )}
         </div>
       </div>
-    );
-  }
-}
+    </div>
+  );
+};
 
 export default App;
