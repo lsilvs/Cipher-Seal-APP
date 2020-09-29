@@ -5,7 +5,7 @@ import * as bip32 from 'bip32';
 import * as bip39 from 'bip39';
 import * as ecc from 'tiny-secp256k1';
 import Header from './components/Header';
-import Users from './components/Users';
+import Home from './components/Home';
 import CreateUser from './components/CreateUser';
 import LoginUser from './components/LoginUser';
 import {
@@ -80,7 +80,7 @@ const verifySignature = async (payload, publicKey, signature) => {
 
 const App = () => {
   const [user, setUser] = useState(getCurrentUser() || {});
-  const [view, setView] = useState(getCurrentUser() ? 'showUser' : 'loginUser');
+  const [view, setView] = useState(getCurrentUser() ? 'showHome' : 'loginUser');
 
   const loginUser = async () => {
     if (!bip39.validateMnemonic(user.passphrase)) {
@@ -103,7 +103,7 @@ const App = () => {
         publicKey,
         privateKey,
       });
-      setView('showUser');
+      setView('showHome');
       setUser(response.user);
     }
   };
@@ -138,7 +138,7 @@ const App = () => {
         publicKey,
         privateKey,
       });
-      setView('showUser');
+      setView('showHome');
     }
   };
 
@@ -204,10 +204,8 @@ const App = () => {
               onChangeForm={onChangeForm}
             />
           )}
-          {view === 'showUser' && (
-            <Users
-              users={[getCurrentUser()]}
-            />
+          {view === 'showHome' && (
+            <Home />
           )}
         </div>
       </div>

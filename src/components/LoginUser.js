@@ -14,8 +14,8 @@ export default ({ onChangeForm, loginUser, showCreateUser }) => (
               </label>
             </div>
           </div>
-          <button type="button" onClick={showCreateUser} className="btn btn-default">Sign up</button>
-          <button type="button" onClick={() => loginUser()} className="btn btn-danger">Log in</button>
+          <button type="button" onClick={showCreateUser} className="btn">Sign up</button>
+          <button type="button" onClick={() => loginUser()} className="btn">Log in</button>
         </form>
       </div>
     </div>

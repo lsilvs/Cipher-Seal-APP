@@ -22,7 +22,7 @@ export default ({ user, onChangeForm, createUser }) => (
               </label>
             </div>
           </div>
-          <button type="button" onClick={() => createUser()} className="btn btn-danger">Create</button>
+          <button type="button" onClick={() => createUser()} className="btn">Create</button>
         </form>
       </div>
     </div>
