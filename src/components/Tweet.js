@@ -1,9 +1,11 @@
 import React from 'react';
+import { GoVerified, GoUnverified } from 'react-icons/go';
 import {
   TiArrowBackOutline,
   TiHeartOutline,
   TiHeartFullOutline,
 } from 'react-icons/ti';
+
 import { formatDate } from '../utils/helpers';
 
 export default ({ tweet }) => {
@@ -13,6 +15,7 @@ export default ({ tweet }) => {
     timestamp,
     text,
     hasLiked,
+    verified,
     likes,
     replies,
     id,
@@ -67,6 +70,11 @@ export default ({ tweet }) => {
             {likes !== 0 && likes}
             {' '}
           </span>
+          {verified === true ? (
+            <GoVerified color="#1DA1F2" className="tweet-icon" />
+          ) : (
+            <GoUnverified color="#C3C3C3" className="tweet-icon" />
+          )}
         </div>
       </div>
     </div>

@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
+import { signPayload, verifySignature } from '../utils/crypto';
 import { formatTweet } from '../utils/helpers';
 import Timeline from './Timeline';
 import TweetForm from './TweetForm';
 import { getAllTweetsService, saveTweetService } from '../services/UserService';
-import { signPayload } from '../utils/crypto';
 
 export default ({ currentUser }) => {
   const [tweets, setTweets] = useState([]);
@@ -21,15 +21,20 @@ export default ({ currentUser }) => {
       users: authors,
     } = await getAllTweetsService({ publicKey, signature, payload });
 
-    const myTweets = Object.keys(tweetsList)
-      .map((key) => {
+    const parsedTweets = await Promise.all(Object.keys(tweetsList)
+      .map(async (key) => {
         const tweet = tweetsList[key];
         const author = authors[tweet.author];
-        return formatTweet(tweet, author);
-      })
-      .sort((a, b) => b.timestamp - a.timestamp);
+        const formated = formatTweet(tweet, author);
+        const originalPayload = {
+          action: 'saveTweet',
+          tweet: { text: tweet.text },
+        };
+        formated.verified = await verifySignature(originalPayload, tweet.author, tweet.signature);
+        return formated;
+      }));
 
-    setTweets(myTweets);
+    setTweets(parsedTweets.sort((a, b) => b.timestamp - a.timestamp));
   };
 
   const saveTweet = async (tweet) => {
