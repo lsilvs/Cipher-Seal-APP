@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { getInitialTweets } from '../utils/api';
+import { getInitialTweets, saveTweet as saveTweetAPI } from '../utils/api';
 import { formatTweet } from '../utils/helpers';
 import Timeline from './Timeline';
 import TweetForm from './TweetForm';
@@ -21,6 +21,11 @@ export default () => {
     setTweets(myTweets);
   };
 
+  const saveTweet = async ({ text, author }) => {
+    await saveTweetAPI({ text, author });
+    await loadTweets();
+  };
+
   useEffect(() => {
     loadTweets();
   }, []);
@@ -31,7 +36,7 @@ export default () => {
         <div className="col-md-2" />
         <div className="col-md-8">
           <h3 className="center">Post</h3>
-          <TweetForm />
+          <TweetForm saveTweet={saveTweet} />
           <Timeline tweets={tweets} />
         </div>
         <div className="col-md-2" />
