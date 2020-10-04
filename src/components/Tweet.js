@@ -35,7 +35,8 @@ export default ({ tweet }) => {
       <img src={`https://i.pravatar.cc/150?u=${authorPublicKey}`} alt={`Avatar of ${authorUsername}`} className="avatar" />
       <div className="tweet-info">
         <div>
-          <span>{authorUsername}</span>
+          <span className="tweet-username">{`@${authorUsername}`}</span>
+          <span className="tweet-public-key">{authorPublicKey}</span>
           <div>
             {formatDate(timestamp)}
             {' '}
@@ -71,7 +72,7 @@ export default ({ tweet }) => {
             {' '}
           </span>
           {verified === true ? (
-            <GoVerified color="#1DA1F2" className="tweet-icon" />
+            <GoVerified color="#1DA1F2" className="tweet-icon" title={`@${authorUsername}: ${authorPublicKey}`} />
           ) : (
             <GoUnverified color="#C3C3C3" className="tweet-icon" />
           )}

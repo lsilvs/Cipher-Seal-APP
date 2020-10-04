@@ -107,6 +107,10 @@ li {
   flex-direction: column;
 }
 
+.tweet-public-key {
+  font-size: 10px !important;
+}
+
 /* Hacky but less typing in the video */
 .tweet-info > div > span:first-child {
   font-weight: bold;
