@@ -55,6 +55,10 @@ a {
   text-align: center;
 }
 
+form {
+  margin-bottom: 25px;
+}
+
 .active {
   font-weight: bold;
 }

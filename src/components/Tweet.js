@@ -9,6 +9,7 @@ import { formatDate } from '../utils/helpers';
 export default ({ tweet }) => {
   const {
     authorUsername,
+    authorPublicKey,
     timestamp,
     text,
     hasLiked,
@@ -28,7 +29,7 @@ export default ({ tweet }) => {
 
   return (
     <div to={`/tweet/${id}`} className="tweet">
-      <img src={`https://i.pravatar.cc/150?u=${authorUsername}`} alt={`Avatar of ${authorUsername}`} className="avatar" />
+      <img src={`https://i.pravatar.cc/150?u=${authorPublicKey}`} alt={`Avatar of ${authorUsername}`} className="avatar" />
       <div className="tweet-info">
         <div>
           <span>{authorUsername}</span>

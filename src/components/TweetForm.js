@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-export default ({ saveTweet }) => {
+export default ({ onSubmit }) => {
   const [message, setMessage] = useState('');
   const charsLeft = 280 - message.length;
 
@@ -10,7 +10,8 @@ export default ({ saveTweet }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    saveTweet({ text: message, author: 'dan_abramov' });
+    onSubmit({ text: message });
+    setMessage('');
   };
 
   return (
